@@ -38,9 +38,6 @@ function addNewLaunches (launch) {
 
 function abortLaunchByID (launchID) {
   const aborted = launches.get (launchID);
-  console.log ('myyy launches = ', Array.from (launches));
-  console.log ('myyy launchID = ', launchID);
-
   aborted.upcoming = false;
   aborted.success = false;
   return aborted;
