@@ -92,7 +92,7 @@ async function abortLaunchByID (launchID) {
     }
   );
 
-  return aborted;
+  return aborted.modifiedCount === 1;
   // return aborted.ok === 1 && aborted.nModified === 1;
 }
 
