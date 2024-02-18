@@ -1,8 +1,8 @@
 const launchesDataBase = require ('./launches.mongo');
+const planets = require ('./planets.mongo');
 
+const DEFAULT_FLIGHT_NUMBER = 100;
 const launches = new Map ();
-
-let latestFlightNumber = 100;
 
 const launch = {
   flightNumber: 100,
@@ -23,8 +23,16 @@ function existLaunchWithID (id) {
   return launches.has (id);
 }
 
-function getAllLaunches () {
-  return launchesDataBase.find (
+async function getLatestFlightNumber () {
+  const latestLunch = await launchesDataBase.findOne ().sort ('-flightNumber');
+  if (!latestLunch) {
+    return DEFAULT_FLIGHT_NUMBER;
+  }
+  return latestLunch.flightNumber;
+}
+
+async function getAllLaunches () {
+  return await launchesDataBase.find (
     {},
     {
       _id: 0,
@@ -35,7 +43,15 @@ function getAllLaunches () {
 
 async function saveLaunche (launch) {
   try {
-    await launchesDataBase.updateOne (
+    const planet = await planets.findOne ({
+      keplerName: launch.target,
+    });
+
+    if (!planet) {
+      throw new Error ("This planet don't exist in the database");
+    }
+
+    await launchesDataBase.findOneAndUpdate (
       {
         flightNumber: launch.flightNumber,
       },
@@ -45,21 +61,25 @@ async function saveLaunche (launch) {
       }
     );
   } catch (err) {
-    console.error (`Couldn't save launch ${err}`);
+    console.error (`Couldn't save launch ${err} \n ${launch.target}`);
   }
 }
 
-function addNewLaunches (launch) {
-  latestFlightNumber++;
-  launches.set (
-    latestFlightNumber,
-    Object.assign (launch, {
+async function scheduleNewLaunch (launch) {
+  try {
+    const newFlightNumber = (await getLatestFlightNumber ()) + 1;
+
+    const newLaunch = Object.assign (launch, {
       success: true,
       upcoming: true,
       customers: ['ZTM', 'NASA'],
-      flightNumber: latestFlightNumber,
-    })
-  );
+      flightNumber: newFlightNumber,
+    });
+
+    await saveLaunche (newLaunch);
+  } catch (err) {
+    console.log (`Couldn't add new launch ${err}`);
+  }
 }
 
 function abortLaunchByID (launchID) {
@@ -72,6 +92,6 @@ function abortLaunchByID (launchID) {
 module.exports = {
   existLaunchWithID,
   getAllLaunches,
-  addNewLaunches,
+  scheduleNewLaunch,
   abortLaunchByID,
 };
