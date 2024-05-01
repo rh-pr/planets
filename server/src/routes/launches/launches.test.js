@@ -15,7 +15,7 @@ const {mongoConnect, mongoDisconnect} = require ('../../services/mongo');
 describe ('Test GET launches', () => {
   test ('It should respond with 200 seuccess', async () => {
     const respons = await request (app)
-      .get ('/launches')
+      .get ('/v1/launches')
       .expect ('Content-Type', /json/)
       .expect (200);
   });
@@ -44,7 +44,7 @@ describe ('Test POST launches', () => {
 
   test ('It should respond with 201 created', async () => {
     const respons = await request (app)
-      .post ('/launches')
+      .post ('/v1/launches')
       .send (complateLauchData)
       .expect ('Content-Type', /json/)
       .expect (201);
@@ -59,7 +59,7 @@ describe ('Test POST launches', () => {
 
   test ('It should be catch missing required properties', async () => {
     const respons = await request (app)
-      .post ('/launches')
+      .post ('/v1/launches')
       .send (launchDataWithoutDate)
       .expect ('Content-Type', /json/)
       .expect (400);
@@ -71,7 +71,7 @@ describe ('Test POST launches', () => {
 
   test ('It should be catch invalied dates', async () => {
     const respons = await request (app)
-      .post ('/launches')
+      .post ('/v1/launches')
       .send (launchDataWithInvalideDate)
       .expect ('Content-Type', /json/)
       .expect (400);
